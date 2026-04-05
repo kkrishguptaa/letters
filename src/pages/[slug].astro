@@ -1,0 +1,38 @@
+---
+const id = Astro.params.slug as string;
+
+import RootLayout from "~layouts/RootLayout.astro";
+import { fetchLetterBySlug } from "~lib/caisy";
+import RichTextRenderer from "@caisy/rich-text-astro-renderer";
+import { isAuthLocked } from "~lib/auth-lock";
+import DocumentLink from "~components/DocumentLink.astro";
+
+let letter: Awaited<ReturnType<typeof fetchLetterBySlug>>;
+
+try {
+  letter = await fetchLetterBySlug(id);
+} catch (error) {
+  console.log(error);
+  return Astro.redirect("/404");
+}
+
+const authLock = await isAuthLocked(letter.authLock, Astro.request.headers);
+
+if (authLock) {
+  return Astro.redirect("/blocked?slug=" + id);
+}
+---
+
+<RootLayout>
+  <header class="mb-10 space-y-4">
+    <h1 class="text-4xl md:text-6xl">{letter.title}</h1>
+    <hr class="border-foreground/50" />
+  </header>
+  <article class="prose prose-xl prose-invert">
+    <RichTextRenderer
+      node={letter.content.json}
+      connections={letter.content.connections}
+      overwrites={{ documentLink: DocumentLink }}
+    />
+  </article>
+</RootLayout>

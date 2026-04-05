@@ -1,17 +1,58 @@
 ---
+import RootLayout from "~layouts/RootLayout.astro";
+import { fetchAllLetters } from "../lib/caisy";
+import { site } from "~shared";
 
+const letters = await fetchAllLetters();
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<RootLayout>
+  <header class="mb-10 space-y-4">
+    <h1 class="text-4xl md:text-6xl">Letters by Krish</h1>
+    <hr class="border-foreground/50" />
+    <p>
+      These are letters I've written to talk about concerns I've had that I
+      could not share through any other medium. This site was originally made to
+      speak up against the unfair policy of the Fire Department in Hack Club and
+      the acts of corruption and abuse of power.
+    </p>
+    <p>
+      Some of the pages here have been blocked to access without authentication.
+      The authentication is usually logging in with an account that proves your
+      affiliation with the organization the article is in regards with. No data
+      is stored. In fact this site does not have a database.
+    </p>
+    <hr class="border-foreground/50" />
+  </header>
+  <nav>
+    <ul class="space-y-4">
+      {
+        letters.edges.map((letter) => (
+          <a href={new URL(letter.node.id, site)} class="block transition-colors hover:bg-primary/5 rounded">
+            <li class="flex w-full items-center justify-between px-2 py-1">
+              <span>
+                <span class="text-2xl text-primary underline-offset-4">
+                  {letter.node.title}
+                </span>
+                <span class="hidden md:block">{letter.node.authLock ? ` 🔒 with ${letter.node.authLock} authentication` : ''}</span>
+              </span>
+              <span>
+                –
+                <span class="text-foreground/70">
+                  {new Date(letter.node._meta.publishedAt).toLocaleDateString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    },
+                  )}
+                </span>
+              </span>
+            </li>
+          </a>
+        ))
+      }
+    </ul>
+  </nav>
+</RootLayout>

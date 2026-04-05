@@ -1,0 +1,77 @@
+---
+import RootLayout from "~layouts/RootLayout.astro";
+
+const slug = Astro.url.searchParams.get("slug");
+
+let requiredProvider = "";
+let letterTitle = "this letter";
+
+if (slug) {
+  try {
+    const { fetchLetterBySlug } = await import("~lib/caisy");
+    const letter = await fetchLetterBySlug(slug);
+    if (letter.authLock) {
+      requiredProvider = letter.authLock;
+    }
+    if (letter.title) {
+      letterTitle = `"${letter.title}"`;
+    }
+  } catch (error) {
+    return Astro.redirect("/404");
+  }
+}
+
+const providerDisplayName = requiredProvider.charAt(0).toUpperCase() + requiredProvider.slice(1);
+---
+
+<RootLayout>
+  <header class="mb-10 space-y-4">
+    <h1 class="text-4xl md:text-6xl">Access Blocked</h1>
+    <hr class="border-foreground/50" />
+  </header>
+
+  <div class="space-y-6">
+    <p class="text-xl">
+      Access to {letterTitle} requires {providerDisplayName} authentication.
+    </p>
+
+    <p>
+      This letter has been restricted to verify your affiliation with the
+      organization it pertains to. No data is stored during this process.
+    </p>
+
+    <div class="mt-8 flex flex-col sm:flex-row gap-4">
+      <button
+        id="login-btn"
+        class="px-6 py-3 cursor-pointer bg-primary text-background font-semibold rounded hover:bg-primary/90 transition-colors"
+      >
+        Sign in with {providerDisplayName}
+      </button>
+      <a
+        href="/"
+        class="px-6 py-3 border border-foreground/50 text-foreground text-center rounded hover:bg-foreground/5 transition-colors"
+      >
+        Back to Home
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const { authClient } = await import("../lib/auth-client");
+
+    const loginBtn = document.getElementById("login-btn");
+    if (loginBtn) {
+      loginBtn.addEventListener("click", async () => {
+        const params = new URLSearchParams(window.location.search);
+        const slug = params.get("slug");
+
+        const callbackURL = slug ? `/${slug}` : "/";
+
+        await authClient.signIn.social({
+          provider: "hackclub",
+          callbackURL,
+        });
+      });
+    }
+  </script>
+</RootLayout>

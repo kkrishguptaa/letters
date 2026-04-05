@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-background: var(--color-background-default);
+  --color-foreground: var(--color-foreground-default);
+  --color-primary: var(--color-accent);
+
+  --default-font-family: var(--font-body);
+}
+
+@layer base {
+  :root {
+    --color-background-default: #1A150F;
+    --color-foreground-default: #F7F2EA;
+    --color-accent: #D3A759;
+
+    color-scheme: dark;
+
+    @apply bg-background text-foreground;
+  }
+}
